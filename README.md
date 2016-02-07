@@ -5,14 +5,11 @@ This is a submission for the first course project for
 files:
 
 * `README.md` this file, which is a slightly modified version of the original.
-* `common.R` some common global variables and functions used throughout.
-* `getdata.R` a helper script for getting and unzipping the input data. This
-  places the data file in the `data` subdirectory of the working directory,
-  which can be changed in `common.R`.
-* `plot1.R` code for generating `plots/plot1.png`
-* `plot2.R` code for generating `plots/plot2.png`
-* `plot3.R` code for generating `plots/plot3.png`
-* `plot4.R` code for generating `plots/plot4.png`
+
+* `plot1.R` code for generating `plot1.png`
+* `plot2.R` code for generating `plot2.png`
+* `plot3.R` code for generating `plot3.png`
+* `plot4.R` code for generating `plot4.png`
 
 Two subdirectories exist as well:
 
