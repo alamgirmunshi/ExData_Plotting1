@@ -1,83 +1,33 @@
-## plot4.R
-##
-## Generate the fourth plot required for Project 1. The plot is contains
-## 4 different line plots. Two of the plots are the second and third plots
-## while the other two are line plots of Voltage and Global_reactive_power.
-## 
-## Load common declarations and functions
-## Set data directory
-dataDir <- "./data"
-## Set plot directory
-plotsDir <- "./plots"
-## Unzipped file location setup
-unzippedDataFile <- file.path(dataDir, "household_power_consumption.txt")
-## Read data from flat file
-dta <- read.delim(unzippedDataFile, sep = ";", na.strings="?",  stringsAsFactors = FALSE)
-## Create a formatted date column
-dta$DateObj  <- as.Date(dta$Date, format="%d/%m/%Y")
-## Get only the subset for 2 days
-dta <- subset(dta, "2007-02-01" <= DateObj & DateObj <= "2007-02-02")
-# Combine date and time into one column.
-dta$DateTime <- strptime(paste(dta$Date, dta$Time), format="%d/%m/%Y %H:%M:%S")
+## Question 4: 
+## Exploratory Data Analysis - Project 2
+## Alamgir Munshi
+## Load ggplot2 library
+ 
+library(ggplot2)
 
-dta$DateTime <- as.POSIXct(dta$DateTime)
-dta <- dta[order(dta$DateTime),]
+## Loading downloaded data
+NEI <- readRDS("summarySCC_PM25.rds")
+SCC <- readRDS("Source_Classification_Code.rds")
 
-prepareForPlots <- function() {
-  if (!file.exists(plotsDir)) {
-    writeLines(paste("Creating", plotsDir))
-    dir.create(plotsDir)
-    
-  }
-}
-prepareForPlots()
+## Coal combustion 
+SCC.coal = SCC[grepl("coal", SCC$Short.Name, ignore.case=TRUE),]
 
-plotFilePath <- function(plotName) {
-  file.path(plotsDir, plotName)
-}
+## Merge 
+merge <- merge(x=NEI, y=SCC.coal, by='SCC')
+merge.sum <- aggregate(merge[, 'Emissions'], by=list(merge$year), sum)
+colnames(merge.sum) <- c('Year', 'Emissions')
 
-# Open PNG file.
-png(plotFilePath("plot4.png"),
-    width=480,
-    height=480)
-# Setup for the 4 plots. Layout the plots in a 2 by 2 grid, filling in
-# columnwise.
-par(mfcol=c(2,2))
+## Question 4.Across the United States, how have emissions from coal combustion-related 
+## sources changed from 1999-2008?
 
-# From plot2.R, but modified to drop kilowatts
-with(dta, 
-     plot(DateTime, Global_active_power, type="l",
-          xlab="", ylab="Global Active Power"))
+## Generate the graph 
+png(filename='plot4.png')
 
-# From plot3.R
-with(dta, {
-  # Initial line plot with Sub_metering_1 data
-  plot(DateTime, Sub_metering_1, type="l", 
-       xlab="", ylab="Energy sub metering") 
-  
-  # Now add the other sub-metering data with more lines
-  lines(DateTime, Sub_metering_2, col="red")
-  lines(DateTime, Sub_metering_3, col="blue")
-  
-  # Create the legend in the upper right, setting line width (required)
-  # and the colors appropriately for the legend labels.
-  legend("topright",
-         legend=c("Sub_metering_1",
-                  "Sub_metering_2",
-                  "Sub_metering_3"),
-         lwd=1,
-         bty="n", # differs from plot3.R to match plot4
-         col=c("black", "red", "blue")
-  )
-})
-
-# Voltage plot
-with(dta,
-     plot(DateTime, Voltage, type="l", xlab="datetime"))
-
-# Global_reactive_power plot
-with(dta,
-     plot(DateTime, Global_reactive_power, type="l", xlab="datetime"))
-
-# Close the PNG
+ggplot(data=merge.sum, aes(x=Year, y=Emissions/1000)) + 
+    geom_line(aes(group=1, col=Emissions)) + geom_point(aes(size=2, col=Emissions)) + 
+    ggtitle(expression('Total Emissions of PM'[2.5])) + 
+    ylab(expression(paste('PM', ''[2.5], ' in kilotons'))) + 
+    geom_text(aes(label=round(Emissions/1000,digits=2), size=2, hjust=1.5, vjust=1.5)) + 
+    theme(legend.position='none') + scale_colour_gradient(low='black', high='red')
+## Close graphic device
 dev.off()

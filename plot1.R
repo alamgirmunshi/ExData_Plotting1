@@ -1,44 +1,27 @@
-## plot1.R
-##
-## Generate the first plot required for Project 1. The plot is a histogram
-## of global active power in kilowatts.
-## Load common declarations and functions
-## Set data directory
-dataDir <- "./data"
-## Set plot directory
-plotsDir <- "./plots"
-## Unzipped file location setup
-unzippedDataFile <- file.path(dataDir, "household_power_consumption.txt")
-## Read data from flat file
-dta <- read.delim(unzippedDataFile, sep = ";", na.strings="?",  stringsAsFactors = FALSE)
-## Create a formatted date column
-dta$DateObj  <- as.Date(dta$Date, format="%d/%m/%Y")
-## Get only the subset for 2 days
-dta <- subset(dta, "2007-02-01" <= DateObj & DateObj <= "2007-02-02")
-# Combine date and time into one column.
-dta$DateTime <- strptime(paste(dta$Date, dta$Time), format="%d/%m/%Y %H:%M:%S")
+## Question 1: 
+## Exploratory Data Analysis - Project 2
+## Alamgir Munshi
 
-dta$DateTime <- as.POSIXct(dta$DateTime)
-dta <- dta[order(dta$DateTime),]
+## Loading downloaded data
+NEI <- readRDS("summarySCC_PM25.rds")
+SCC <- readRDS("Source_Classification_Code.rds")
 
-prepareForPlots <- function() {
-  if (!file.exists(plotsDir)) {
-    writeLines(paste("Creating", plotsDir))
-    dir.create(plotsDir)
-  }
-}
-prepareForPlots()
+## Creating Sample
+## NEI_sample <- NEI[sample(nrow(NEI), size=2000, replace=F), ]
 
-plotFilePath <- function(plotName) {
-  file.path(plotsDir, plotName)
-}
-## create plot1.png file
-png(plotFilePath("plot1.png"),
-    width=480,
-    height=480)
+## Creating Aggregate
+Emissions <- aggregate(NEI[, 'Emissions'], by=list(NEI$year), FUN=sum)
+Emissions$PM <- round(Emissions[,2]/1000,2)
 
-hist(dta$Global_active_power,
-     main="Global Active Power",
-     xlab="Global Active Power (kilowatts)",
-     col="red")
+## Question 1.Have total emissions from PM2.5 decreased in the United States from 1999 to 2008? 
+## Using the base plotting system, make a plot showing the total PM2.5 
+## emission from all sources for each of the years 1999, 2002, 2005, and 2008.
+
+## Generating graph
+png(filename='plot1.png')
+
+barplot(Emissions$PM, names.arg=Emissions$Group.1, 
+        main=expression('Total Emission of PM'[2.5]),
+        xlab='Year', ylab=expression(paste('PM', ''[2.5], ' in Kilotons')))
+## Close graphic device
 dev.off()

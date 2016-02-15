@@ -1,47 +1,25 @@
-## plot2.R
-##
-## Generate the second plot required for Project 1. The plot is a line plot
-## of global active power in kilowatts.
-## Load common declarations and functions
-## Set data directory
-dataDir <- "./data"
-## Set plot directory
-plotsDir <- "./plots"
-## Unzipped file location setup
-unzippedDataFile <- file.path(dataDir, "household_power_consumption.txt")
-## Read data from flat file
-dta <- read.delim(unzippedDataFile, sep = ";", na.strings="?",  stringsAsFactors = FALSE)
-## Create a formatted date column
-dta$DateObj  <- as.Date(dta$Date, format="%d/%m/%Y")
-## Get only the subset for 2 days
-dta <- subset(dta, "2007-02-01" <= DateObj & DateObj <= "2007-02-02")
-# Combine date and time into one column.
-dta$DateTime <- strptime(paste(dta$Date, dta$Time), format="%d/%m/%Y %H:%M:%S")
+## Question 2: 
+## Exploratory Data Analysis - Project 2
+## Alamgir Munshi
 
-dta$DateTime <- as.POSIXct(dta$DateTime)
-dta <- dta[order(dta$DateTime),]
+## Loading downloaded data
+NEI <- readRDS("summarySCC_PM25.rds")
+SCC <- readRDS("Source_Classification_Code.rds")
 
-prepareForPlots <- function() {
-  if (!file.exists(plotsDir)) {
-    writeLines(paste("Creating", plotsDir))
-    dir.create(plotsDir)
-  }
-}
-prepareForPlots()
+## Creating Sample
+## NEI_sample <- NEI[sample(nrow(NEI), size=2000, replace=F), ]
 
-plotFilePath <- function(plotName) {
-  file.path(plotsDir, plotName)
-}
+## Subset data and append two years in one data frame
+MD <- subset(NEI, fips=='24510')
 
-# Open PNG file.
-png(plotFilePath("plot2.png"),
-    width=480,
-    height=480)
+## Question 2. Have total emissions from PM2.5 decreased in the Baltimore City, Maryland (fips == "24510") 
+## from 1999 to 2008? Use the base plotting system to make a plot answering this question.
 
-# Generate the line plot for global active power
-with(dta, 
-     plot(DateTime, Global_active_power, type="l",
-          xlab="", ylab="Global Active Power (kilowatts)"))
+## Generate the graph
+png(filename='plot2.png')
 
-# Close PNG file.
+barplot(tapply(X=MD$Emissions, INDEX=MD$year, FUN=sum), 
+        main='Total Emission in Baltimore City, MD (fips == "24510")', 
+        xlab='Year', ylab=expression('PM'[2.5]))
+## Close graphic device
 dev.off()
